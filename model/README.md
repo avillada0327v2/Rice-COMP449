@@ -4,9 +4,17 @@ Requirements:
  pip install -r requirements. txt
 ```
 
+## bert_embeddings.py 
+
+ The main script to get bert_embeddings
+
+```python
+python bert_embeddings.py 
+```
+
 ## run.py 
 
- The main script to get result.
+After generating the BERT embeddings, you can proceed to train or evaluate the model using the run.py script.
 
 ```python
 python3 run.py [options] 
@@ -15,12 +23,6 @@ python3 run.py [options]
 * General Parameters:
   * `--method` (Required): train model or get the evaluate result. Possible values: `train` or `eval`
 
-## bert_embeddings.py 
 
- The main script to get bert_embeddings
-
-```python
-python bert_embeddings.py 
-```
 
 
