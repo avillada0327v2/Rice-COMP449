@@ -9,7 +9,7 @@ Requirements:
  The main script to generate the necessary BERT embeddings 
 
 ```python
-python bert_embeddings.py 
+python3 bert_embeddings.py 
 ```
 
 ## run.py 
