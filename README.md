@@ -1,4 +1,5 @@
-# Rice-COMP449
+# Rice-COMP449 - Context-Aware Paper Recommendation System
+
 Research Paper Recommendation Project for COMP 449 S24
 
 # Dataset used
