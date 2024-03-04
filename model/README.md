@@ -1,6 +1,7 @@
 Requirements:
-* Python 3
-* Have downloaded unzipped directory of citation data in this same directory (https://www.dropbox.com/s/iltvodnh2mldgub/dss.tar.gz?dl=0)
+```python
+ pip install -r requirements. txt
+```
 
 ## run.py 
 
