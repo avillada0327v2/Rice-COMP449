@@ -21,14 +21,4 @@ python3 run.py [options]
 python bert_embeddings.py 
 ```
 
-* General Parameters:
-  * `--model` (Required): The mode to run the `run_classifier.py` script in. Possible values: `bert` or `bert_gcn`
-  * `--dataset` (Required): The dataset to run the `run_classifier.py` script in. Possible values: `AAN` or `PeerRead`
-  * `--frequency` (Required): Parse datasets more frequently
-  * `--max_seq_length` : Length of cited text to use 
-  * `--gpu` : The gpu to run code
-
-* BERT Parameters:
-  You can refer to it [here](https://github.com/google-research/bert).
-  * `--do_train`, `--do_predict`, `--data_dir`, `--vocab_file`, `--bert_config_file`, `--init_checkpoint`, ...
 
