@@ -67,31 +67,17 @@ def run(method):
             print(f"Epoch {epoch + 1}: Loss {loss}") 
     
     if method == 'eval':
-        evaluate_model(model, data, df, all_node_ids, node_to_index, device)
-    
+        relevant_items = get_relevant_items(df)
+        recommended_items, recommended_scores = get_recommended_items(model, data, df, all_node_ids, node_to_index)
 
-def evaluate_model(model, data, df, all_node_ids, node_to_index, device):
-    """
-    Evaluate the GNN model and print performance metrics.
+        print(f'MRR: {mean_reciprocal_rank(recommended_items, relevant_items)}')
+        for k in [5, 10, 30, 50, 80]:
+            print(f'Recall@{k}: {recall_at_k(recommended_items, relevant_items, k)}')
+        for k in [5, 10, 30, 50, 80]:
+            print(f'MAP@{k}: {mean_average_precision_at_k(recommended_items, relevant_items, k)}')          
     
-    Parameters:
-    - model: The trained GNN model.
-    - data: The graph data for evaluation.
-    - df: DataFrame containing the dataset.
-    - all_node_ids: List of all node IDs in the graph.
-    - node_to_index: Mapping from node IDs to their indices in the feature matrix.
-    - device: The device on which the model is evaluated.
-    """
-    relevant_items = get_relevant_items(df)
-    recommended_items, recommended_scores = get_recommended_items(model, data, df, all_node_ids, node_to_index)
     
-    print(f'MRR: {mean_reciprocal_rank(recommended_items, relevant_items)}')
-    for k in [5, 10, 30, 50, 80]:
-        print(f'Recall@{k}: {recall_at_k(recommended_items, relevant_items, k)}')
-    for k in [5, 10, 30, 50, 80]:
-        print(f'MAP@{k}: {mean_average_precision_at_k(recommended_items, relevant_items, k)}')          
-    
-
+        
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--method', '-m', type=str, default='train')
