@@ -33,6 +33,17 @@ def get_node_id_index(df):
 
 
 def generate_negative_samples(edge_index, num_nodes, num_negative_samples):
+    """
+    Generate negative samples for graph edges.
+
+    Parameters:
+    - edge_index: Tensor representing positive edges in the graph.
+    - num_nodes: Total number of nodes in the graph.
+    - num_negative_samples: Number of negative samples to generate.
+
+    Returns:
+    - A tensor of negative edge samples.
+    """
     # Generate a set of all possible pairs of nodes
     all_possible_pairs = set((i, j) for i in range(num_nodes) for j in range(num_nodes) if i != j)
     
@@ -46,6 +57,14 @@ def generate_negative_samples(edge_index, num_nodes, num_negative_samples):
     return torch.tensor(negative_samples, dtype=torch.long).t()
 
 class GNN(torch.nn.Module):
+    """
+    Graph Neural Network (GNN) using Graph Convolutional Network (GCN) layers.
+
+    Parameters:
+    - num_features: Number of features per node.
+    - hidden_dim: Dimension of hidden layer.
+    - output_dim: Dimension of output layer.
+    """
     def __init__(self, num_features, hidden_dim, output_dim):
         super(GNN, self).__init__()
         self.conv1 = GCNConv(num_features, hidden_dim)
@@ -60,6 +79,19 @@ class GNN(torch.nn.Module):
         return x
 
 def gnn_train(model, data, optimizer, criterion, device):
+    """
+    Train a GNN model for one epoch.
+
+    Parameters:
+    - model: The GNN model to train.
+    - data: Graph data containing nodes, edges, and labels.
+    - optimizer: Optimizer to use for training.
+    - criterion: Loss function.
+    - device: The device (CPU or GPU) for training.
+
+    Returns:
+    - The loss value as a float.
+    """
     model.train()
     optimizer.zero_grad()
     # Ensure data and model are on the correct device
