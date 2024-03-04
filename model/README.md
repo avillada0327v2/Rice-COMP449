@@ -1,4 +1,5 @@
 Requirements:
+* Python Python 3.10.13
 ```python
  pip install -r requirements. txt
 ```
