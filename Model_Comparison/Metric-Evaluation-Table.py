@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
 
 # Import necessary libraries
 import pandas as pd
@@ -10,9 +5,6 @@ from sklearn.metrics import precision_score, average_precision_score
 import joblib
 import torch
 from torcheval.metrics import HitRate
-
-
-# In[2]:
 
 
 # Precision@K evaluation
@@ -62,9 +54,6 @@ def mean_average_precision_at_k(query_results, relevant_items_per_query, k):
     return sum(average_precisions) / len(average_precisions) if average_precisions else 0
 
 
-# In[3]:
-
-
 # Hits@K evaluation
 def hits_at_k(recommended_items, relevant_items, k):
     """Calculate the hits at k for a single query.
@@ -108,9 +97,6 @@ def mean_hits_at_k(query_results, relevant_items_per_query, k):
             hits_at_ks.append(hits_at_k_value)
 
     return sum(hits_at_ks) / len(hits_at_ks) if hits_at_ks else 0
-
-
-# In[4]:
 
 
 # Recall@K evaluation
@@ -160,9 +146,6 @@ def mean_recall_at_k(query_results, relevant_items_per_query, k):
     return sum(recalls) / len(recalls) if recalls else 0
 
 
-# In[5]:
-
-
 # Load saved models
 # Assuming using joblib.load:
 #bert_model = joblib.load('path/to/bert_model.pkl')
@@ -180,8 +163,6 @@ def mean_recall_at_k(query_results, relevant_items_per_query, k):
 # Load data
 test_data = pd.read_csv('full_context_PeerRead.csv')
 
-
-# In[ ]:
 
 
 # Evaluate our models
@@ -210,12 +191,10 @@ def get_query_and_relevant(G, model, k):
 
 query_results1, relevant_items_per_query1 = get_query_and_relevant(G, model, k=20)
 
-# Custom model
+# [Custom] model
 # Replace with appropriate evaluation/recommendation code snippet
 custom_model_predictions = custom_model.predict(test_data)
 
-
-# In[ ]:
 
 
 # Calculate evaluation metrics
@@ -231,9 +210,6 @@ custom_model_hits = mean_hits_at_k(query_results, relevant_items_per_query, k=20
 bert_recall = mean_recall_at_k(top_k_similar_nodes, get_relevant(G), k=20)
 node2vec_recall = mean_recall_at_k(query_results1, relevant_items_per_query1, k=20)
 custom_model_recall = mean_recall_at_k(query_results, relevant_items_per_query, k=20)
-
-
-# In[ ]:
 
 
 # Organize results into a table
