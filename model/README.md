@@ -6,7 +6,7 @@ Requirements:
 
 ## bert_embeddings.py 
 
- The main script to get bert_embeddings
+ The main script to generate the necessary BERT embeddings 
 
 ```python
 python bert_embeddings.py 
