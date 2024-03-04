@@ -65,18 +65,17 @@ def run(method):
         loss = gnn_train(model, data, optimizer, criterion, device)
         if (epoch + 1) % 50 == 0 and method == 'train':
             print(f"Epoch {epoch + 1}: Loss {loss}") 
-    
+            
+    # Evaluate
     if method == 'eval':
         relevant_items = get_relevant_items(df)
         recommended_items, recommended_scores = get_recommended_items(model, data, df, all_node_ids, node_to_index)
 
-        print(f'MRR: {mean_reciprocal_rank(recommended_items, relevant_items)}')
+        print(f'Mean Reciprocal Rank: {mean_reciprocal_rank(recommended_items, relevant_items)}')
+        for k in [5, 10, 30, 50, 80]:
+            print(f'Mean Average Precision@{k}: {mean_average_precision_at_k(recommended_items, relevant_items, k)}')          
         for k in [5, 10, 30, 50, 80]:
             print(f'Recall@{k}: {recall_at_k(recommended_items, relevant_items, k)}')
-        for k in [5, 10, 30, 50, 80]:
-            print(f'MAP@{k}: {mean_average_precision_at_k(recommended_items, relevant_items, k)}')          
-    
-    
         
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
