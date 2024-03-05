@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, Tenso
 from torch_geometric.nn import GCNConv
 from torch_geometric.data import Data
 from torch.nn import BCEWithLogitsLoss
+from torch_geometric.transforms import RandomLinkSplit
 
 def get_node_id_index(df):
     """
@@ -31,30 +32,39 @@ def get_node_id_index(df):
     node_to_index = {node_id: i for i, node_id in enumerate(all_node_ids)}
     return all_node_ids, node_to_index
 
-
-def generate_negative_samples(edge_index, num_nodes, num_negative_samples):
+def generate_data_object(df, node_to_index, node_features_tensor):
     """
-    Generate negative samples for graph edges.
-
+    Create a PyTorch Geometric Data object from DataFrame and node features.
+    
     Parameters:
-    - edge_index: Tensor representing positive edges in the graph.
-    - num_nodes: Total number of nodes in the graph.
-    - num_negative_samples: Number of negative samples to generate.
-
+    - df (pd.DataFrame): DataFrame containing the edges of the graph. Must have columns 'target_id' and 'source_id'.
+    - node_to_index (dict): A dictionary mapping node IDs to their corresponding index in the tensor.
+    - node_features_tensor (torch.Tensor): A tensor containing the features of each node in the graph.
+    
     Returns:
-    - A tensor of negative edge samples.
+    - data (torch_geometric.data.Data): A PyTorch Geometric Data object ready for use with GNN models.
     """
-    # Generate a set of all possible pairs of nodes
-    all_possible_pairs = set((i, j) for i in range(num_nodes) for j in range(num_nodes) if i != j)
+    edge_index_list = [(node_to_index[tid], node_to_index[sid]) for tid, sid in zip(df['target_id'], df['source_id'])]
+    edge_index_tensor = torch.tensor(edge_index_list, dtype=torch.long).t().contiguous()
+    data = Data(x=node_features_tensor, edge_index=edge_index_tensor, num_nodes=len(node_to_index))
+    return data
+
+def split_edges(data, test_ratio=0.1):
+    """
+    Split edges into training and testing sets using the RandomLinkSplit transform.
     
-    # Remove the positive edges from the set of all possible pairs to get potential negative pairs
-    positive_edges = set((i.item(), j.item()) for i, j in zip(*edge_index))
-    negative_candidates = list(all_possible_pairs - positive_edges)
+    Parameters:
+    - data (torch_geometric.data.Data): The complete graph data.
+    - test_ratio (float): The proportion of edges to use for the test set.
     
-    # Randomly select negative samples from the candidates
-    negative_samples = random.sample(negative_candidates, num_negative_samples)
-    
-    return torch.tensor(negative_samples, dtype=torch.long).t()
+    Returns:
+    - train_data (torch_geometric.data.Data): Data object containing the training set.
+    - test_data (torch_geometric.data.Data): Data object containing the test set.
+    """
+    transform = RandomLinkSplit(is_undirected=False, num_val=0, num_test=test_ratio, neg_sampling_ratio=1.0)
+    train_data, _, test_data = transform(data)
+    return train_data, test_data
+
 
 class GNN(torch.nn.Module):
     """
@@ -98,7 +108,7 @@ def gnn_train(model, data, optimizer, criterion, device):
     out = model(data)
     pred = out[data.edge_label_index[0]] * out[data.edge_label_index[1]]  # Example prediction logic
     pred = pred.sum(dim=-1)  # Sum over features for a simple score
-    loss = criterion(pred, data.edge_labels)  # Ensure labels are on the correct device
+    loss = criterion(pred, data.edge_label)  # Ensure labels are on the correct device
     loss.backward()
     optimizer.step()
     return loss.item()
