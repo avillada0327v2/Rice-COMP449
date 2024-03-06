@@ -1,3 +1,4 @@
+import os
 import gc
 import numpy as np
 import pandas as pd
@@ -6,6 +7,7 @@ import random
 import torch
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader, TensorDataset
 
 def set_seeds(seed=42):
@@ -18,52 +20,6 @@ def set_seeds(seed=42):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     
-
-def get_recommended_items(model, data, df, all_node_ids, node_to_index):
-    """
-    Generate item recommendations for each target node based on model embeddings.
-    
-    Parameters:
-    - model: The trained model that generates embeddings.
-    - data: The input data for the model to generate embeddings.
-    - df: DataFrame containing 'target_id' and 'source_id' for calculating recommendations.
-    - all_node_ids: A list of all node IDs in the order they appear in the embeddings.
-    - node_to_index: A dictionary mapping node IDs to their index in the embedding matrix.
-    
-    Returns:
-    - recommended_items: A dictionary where each key is a target node, and the value is a list of recommended item IDs.
-    - recommended_scores: A dictionary where each key is a target node, and the value is a list of scores corresponding to the recommended items.
-    """
-    model.eval()
-    with torch.no_grad():
-        embeddings = model(data)
-    recommended_items = {}
-    recommended_scores = {}
-    
-    for target in df['target_id'].unique():
-        target_index = node_to_index[target]  # Get the index of the target node
-        target_embedding = embeddings[target_index].unsqueeze(0)  # Add batch dimension for broadcasting
-        
-        # Compute similarity scores via dot product between the target and all embeddings
-        scores = torch.matmul(target_embedding, embeddings.T).squeeze(0)  # Remove batch dimension
-        
-        # Sort scores in descending order and get their indices
-        sorted_scores, sorted_indices = torch.sort(scores, descending=True)
-    
-        
-        # Exclude the target node itself from the recommendations
-        exclude_target = sorted_indices != target_index
-        
-        # Apply the mask to exclude the target and get the top-k indices and their scores
-        top_k_indices = sorted_indices[exclude_target]
-        top_k_scores = sorted_scores[exclude_target]
-        
-        # Convert indices back to node IDs
-        top_k_ids = [all_node_ids[idx] for idx in top_k_indices.cpu().numpy()]
-        recommended_items[target] = top_k_ids
-        recommended_scores[target] = top_k_scores
-        
-    return recommended_items, recommended_scores
 
 def get_relevant_items(df):
     """
