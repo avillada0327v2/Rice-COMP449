@@ -1,13 +1,15 @@
 from utils import *
 import pandas as pd
 import torch
-import torch.nn.functional as F
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
 from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GATConv
 from torch_geometric.data import Data
 from torch.nn import BCEWithLogitsLoss
 from torch_geometric.transforms import RandomLinkSplit
+
 
 def get_node_id_index(df):
     """
@@ -49,66 +51,152 @@ def generate_data_object(df, node_to_index, node_features_tensor):
     data = Data(x=node_features_tensor, edge_index=edge_index_tensor, num_nodes=len(node_to_index))
     return data
 
-def split_edges(data, test_ratio=0.1):
+ 
+class Net(torch.nn.Module):
     """
-    Split edges into training and testing sets using the RandomLinkSplit transform.
+    A Graph Neural Network (GNN) model using Graph Convolutional Network (GCN) layers for link prediction.
     
     Parameters:
-    - data (torch_geometric.data.Data): The complete graph data.
-    - test_ratio (float): The proportion of edges to use for the test set.
+    - in_channels (int): Number of features per input node.
+    - hidden_channels (int): Number of features per node in hidden layers.
+    - out_channels (int): Number of features per output node.
+    """
+    def __init__(self, in_channels, hidden_channels, out_channels):
+        super().__init__()
+        self.conv1 = GCNConv(in_channels, hidden_channels)
+        self.conv2 = GCNConv(hidden_channels, hidden_channels)
+        self.conv3 = GCNConv(hidden_channels, out_channels)
+
+    def encode(self, x, edge_index):
+        """Encodes graph data into node embeddings."""
+        x = F.relu(self.conv1(x, edge_index))
+        x = F.relu(self.conv2(x, edge_index))
+        return self.conv3(x, edge_index)
+
+    def decode(self, z, edge_label_index):
+        """Decodes node embeddings to predict link existence."""
+        return (z[edge_label_index[0]] * z[edge_label_index[1]]).sum(dim=-1)
+
+    def decode_all(self, z):
+        """Decodes node embeddings to predict all possible links."""
+        return (z @ z.t() > 0).nonzero(as_tuple=False).t()
+
+def train_link_predictor(model, train_data, val_data, optimizer, criterion, n_epochs=1000, model_save_path='model.pth'):
+    """
+    Trains the link prediction model and saves it to disk.
     
-    Returns:
-    - train_data (torch_geometric.data.Data): Data object containing the training set.
-    - test_data (torch_geometric.data.Data): Data object containing the test set.
-    """
-    transform = RandomLinkSplit(is_undirected=False, num_val=0, num_test=test_ratio, neg_sampling_ratio=1.0)
-    train_data, _, test_data = transform(data)
-    return train_data, test_data
-
-
-class GNN(torch.nn.Module):
-    """
-    Graph Neural Network (GNN) using Graph Convolutional Network (GCN) layers.
-
     Parameters:
-    - num_features: Number of features per node.
-    - hidden_dim: Dimension of hidden layer.
-    - output_dim: Dimension of output layer.
-    """
-    def __init__(self, num_features, hidden_dim, output_dim):
-        super(GNN, self).__init__()
-        self.conv1 = GCNConv(num_features, hidden_dim)
-        self.conv2 = GCNConv(hidden_dim, output_dim)
-
-    def forward(self, data):
-        x, edge_index = data.x, data.edge_index
-        x = self.conv1(x, edge_index)
-        x = F.relu(x)
-        x = F.dropout(x, training=self.training)
-        x = self.conv2(x, edge_index)
-        return x
-
-def gnn_train(model, data, optimizer, criterion, device):
-    """
-    Train a GNN model for one epoch.
-
-    Parameters:
-    - model: The GNN model to train.
-    - data: Graph data containing nodes, edges, and labels.
-    - optimizer: Optimizer to use for training.
+    - model: Instance of the Net model.
+    - train_data: Training dataset.
+    - val_data: Validation dataset.
+    - optimizer: Optimizer for the model.
     - criterion: Loss function.
-    - device: The device (CPU or GPU) for training.
-
-    Returns:
-    - The loss value as a float.
+    - n_epochs (int): Number of training epochs.
+    - model_save_path (str): File path to save the trained model.
     """
-    model.train()
-    optimizer.zero_grad()
-    # Ensure data and model are on the correct device
-    out = model(data)
-    pred = out[data.edge_label_index[0]] * out[data.edge_label_index[1]]  # Example prediction logic
-    pred = pred.sum(dim=-1)  # Sum over features for a simple score
-    loss = criterion(pred, data.edge_label)  # Ensure labels are on the correct device
-    loss.backward()
-    optimizer.step()
-    return loss.item()
+    set_seeds(42)
+    for epoch in range(1, n_epochs + 1):
+        model.train()
+        optimizer.zero_grad()
+        z = model.encode(train_data.x, train_data.edge_index)
+        out = model.decode(z, train_data.edge_label_index).view(-1)
+        loss = criterion(out, train_data.edge_label)
+        loss.backward()
+        optimizer.step()
+
+        if epoch % 10 == 0:
+            val_auc = eval_link_predictor(model, val_data)
+            print(f"Epoch: {epoch:03d}, Train Loss: {loss:.3f}, Val AUC: {val_auc:.3f}")
+    
+    # Save the model to disk after training
+    torch.save(model.state_dict(), model_save_path)
+    print(f'Model saved to {model_save_path}')
+    
+    return model
+
+
+@torch.no_grad()
+def eval_link_predictor(model, data):
+    """
+    Evaluates the link prediction model on a dataset.
+    
+    Parameters:
+    - model: The trained model.
+    - data: Dataset for evaluation.
+    
+    Returns:
+    - auc_score (float): The AUC score of the model on the given dataset.
+    """
+    model.eval()
+    z = model.encode(data.x, data.edge_index)
+    out = model.decode(z, data.edge_label_index).view(-1).sigmoid()
+    return roc_auc_score(data.edge_label.cpu().numpy(), out.cpu().numpy())
+
+def get_test_report(model, data, df, all_node_ids, node_to_index):
+    """
+    Evaluates the GNN model on test data and prints the performance metrics including
+    Mean Reciprocal Rank (MRR), Mean Average Precision at various levels of K (MAP@K),
+    and Recall at K for different values of K.
+    
+    Parameters:
+    - model: The trained GNN model for link prediction.
+    - data: The PyTorch Geometric data object used for model evaluation.
+    - df: DataFrame containing the ground truth links for evaluation.
+    - all_node_ids: A list of all node IDs in the graph.
+    - node_to_index: A dictionary mapping node IDs to their index in the adjacency matrix.
+    
+    Note:
+    - It is assumed that 'get_relevant_items', 'get_top_k_links_per_node', 'mean_reciprocal_rank',
+      'mean_average_precision_at_k', and 'recall_at_k' are predefined functions available in the scope.
+    """
+    
+    relevant_items = get_relevant_items(df)
+    top_k_links = get_top_k_links_per_node(model, data, df, all_node_ids, node_to_index)
+    
+    print('Test data recommendations performance:')
+    print(f'Mean Reciprocal Rank: {mean_reciprocal_rank(top_k_links, relevant_items)}')
+    for k in [5, 10, 30, 50, 80]:
+        print(f'Mean Average Precision@{k}: {mean_average_precision_at_k(top_k_links, relevant_items, k)}')          
+    for k in [5, 10, 30, 50, 80]:
+        print(f'Recall@{k}: {recall_at_k(top_k_links, relevant_items, k)}')
+
+
+@torch.no_grad()
+def get_top_k_links_per_node(model, data, df, all_node_ids, node_to_index):
+    """
+    For each node, get the top-K highest scoring potential links.
+    
+    Parameters:
+    - model: The trained Net model for link prediction.
+    - data: The graph data as a PyTorch Geometric Data object.
+    - df: DataFrame containing 'target_id' and 'source_id' for calculating recommendations.
+    - all_node_ids: A list of all node IDs in the order they appear in the embeddings.
+    - node_to_index: A dictionary mapping node IDs to their index in the embedding matrix.
+    
+    Returns:
+    - top_k_links: A dictionary where each key is a target node, and the value is a list of recommended item IDs.
+    """
+    model.eval()
+    z = model.encode(data.x, data.edge_index)
+    
+    # Compute similarity score for all pairs
+    similarity_matrix = torch.matmul(z, z.T)
+    
+    top_k_links = {}
+    for target in df['target_id'].unique():
+        node_idx = node_to_index[target]
+        # Exclude self-link
+        similarity_matrix[node_idx, node_idx] = float('-inf')
+        
+        # Get top-K scores and their indices
+        scores, indices = torch.sort(similarity_matrix[node_idx], descending=True)
+       
+        # Exclude self-link from recommendations
+        recommended_indices = indices[1:] if indices[0] == node_idx else indices
+        top_k_ids = [all_node_ids[idx] for idx in recommended_indices if idx != node_idx]
+        recommended_scores = scores[1:] if scores[0] == node_idx else scores
+        
+        
+        top_k_links[target] = top_k_ids
+    
+    return top_k_links
