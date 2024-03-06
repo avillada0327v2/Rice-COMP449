@@ -4,14 +4,6 @@ Requirements:
  pip install -r requirements. txt
 ```
 
-## bert_embeddings.py 
-
- The main script to generate the necessary BERT embeddings 
-
-```python
-python3 bert_embeddings.py 
-```
-
 ## run.py 
 
 After generating the BERT embeddings, you can proceed to train or evaluate the model using the run.py script.
