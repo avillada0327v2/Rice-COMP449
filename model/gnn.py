@@ -1,6 +1,8 @@
 from utils import *
+from bert_embeddings import *
 import pandas as pd
 import torch
+import torch.nn.functional as F
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
@@ -9,7 +11,6 @@ from torch_geometric.nn import GATConv
 from torch_geometric.data import Data
 from torch.nn import BCEWithLogitsLoss
 from torch_geometric.transforms import RandomLinkSplit
-
 
 def get_node_id_index(df):
     """
@@ -34,6 +35,7 @@ def get_node_id_index(df):
     node_to_index = {node_id: i for i, node_id in enumerate(all_node_ids)}
     return all_node_ids, node_to_index
 
+
 def generate_data_object(df, node_to_index, node_features_tensor):
     """
     Create a PyTorch Geometric Data object from DataFrame and node features.
@@ -51,7 +53,45 @@ def generate_data_object(df, node_to_index, node_features_tensor):
     data = Data(x=node_features_tensor, edge_index=edge_index_tensor, num_nodes=len(node_to_index))
     return data
 
- 
+
+def prepare_graph_data(df):
+    """
+    Prepares graph data for GNN training or evaluation by generating node feature tensors
+    from embeddings and creating a PyTorch Geometric Data object.
+
+    Parameters:
+    - df (pd.DataFrame): DataFrame containing the dataset with node identifiers and any additional information required for generating embeddings.
+
+    Returns:
+    - Data: A PyTorch Geometric Data object ready for GNN processing.
+    
+    Assumes existence and documentation of:
+    - get_target_embeddings(df): Function to get embeddings for target nodes.
+    - get_source_abstract_embeddings(): Function to get embeddings for source abstracts.
+    - get_missing_embeddings(): Function to handle missing embeddings.
+    - get_node_id_index(df): Function to map node identifiers to their index in the tensor.
+    - generate_data_object(df, node_to_index, node_features_tensor): Function to create a PyTorch Geometric Data object.
+    """
+    # Retrieve embeddings
+    target_embeddings = get_target_embeddings(df)
+    source_abstract_embeddings = get_source_abstract_embeddings()
+    missing_cls_embeddings = get_missing_embeddings()
+    
+    # Generate node features and data object for GNN
+    all_node_ids, node_to_index = get_node_id_index(df)
+
+    # Retrieve embeddings and store them in a list first
+    node_embeddings_list = [target_embeddings.get(node_id, source_abstract_embeddings.get(node_id, missing_cls_embeddings)) for node_id in all_node_ids]
+
+    # Convert the list of embeddings to a single NumPy array
+    node_embeddings_array = np.array(node_embeddings_list)
+    node_features_tensor = torch.tensor(node_embeddings_array, dtype=torch.float)
+
+    # create the grpah
+    graph = generate_data_object(df, node_to_index, node_features_tensor)
+    return graph
+
+
 class Net(torch.nn.Module):
     """
     A Graph Neural Network (GNN) model using Graph Convolutional Network (GCN) layers for link prediction.
@@ -81,6 +121,7 @@ class Net(torch.nn.Module):
         """Decodes node embeddings to predict all possible links."""
         return (z @ z.t() > 0).nonzero(as_tuple=False).t()
 
+    
 def train_link_predictor(model, train_data, val_data, optimizer, criterion, n_epochs=1000, model_save_path='model.pth'):
     """
     Trains the link prediction model and saves it to disk.
@@ -132,37 +173,9 @@ def eval_link_predictor(model, data):
     out = model.decode(z, data.edge_label_index).view(-1).sigmoid()
     return roc_auc_score(data.edge_label.cpu().numpy(), out.cpu().numpy())
 
-def get_test_report(model, data, df, all_node_ids, node_to_index):
-    """
-    Evaluates the GNN model on test data and prints the performance metrics including
-    Mean Reciprocal Rank (MRR), Mean Average Precision at various levels of K (MAP@K),
-    and Recall at K for different values of K.
-    
-    Parameters:
-    - model: The trained GNN model for link prediction.
-    - data: The PyTorch Geometric data object used for model evaluation.
-    - df: DataFrame containing the ground truth links for evaluation.
-    - all_node_ids: A list of all node IDs in the graph.
-    - node_to_index: A dictionary mapping node IDs to their index in the adjacency matrix.
-    
-    Note:
-    - It is assumed that 'get_relevant_items', 'get_top_k_links_per_node', 'mean_reciprocal_rank',
-      'mean_average_precision_at_k', and 'recall_at_k' are predefined functions available in the scope.
-    """
-    
-    relevant_items = get_relevant_items(df)
-    top_k_links = get_top_k_links_per_node(model, data, df, all_node_ids, node_to_index)
-    
-    print('Test data recommendations performance:')
-    print(f'Mean Reciprocal Rank: {mean_reciprocal_rank(top_k_links, relevant_items)}')
-    for k in [5, 10, 30, 50, 80]:
-        print(f'Mean Average Precision@{k}: {mean_average_precision_at_k(top_k_links, relevant_items, k)}')          
-    for k in [5, 10, 30, 50, 80]:
-        print(f'Recall@{k}: {recall_at_k(top_k_links, relevant_items, k)}')
-
 
 @torch.no_grad()
-def get_top_k_links_per_node(model, data, df, all_node_ids, node_to_index):
+def get_top_k_links_per_node(model, data, df):
     """
     For each node, get the top-K highest scoring potential links.
     
@@ -170,12 +183,12 @@ def get_top_k_links_per_node(model, data, df, all_node_ids, node_to_index):
     - model: The trained Net model for link prediction.
     - data: The graph data as a PyTorch Geometric Data object.
     - df: DataFrame containing 'target_id' and 'source_id' for calculating recommendations.
-    - all_node_ids: A list of all node IDs in the order they appear in the embeddings.
-    - node_to_index: A dictionary mapping node IDs to their index in the embedding matrix.
     
     Returns:
     - top_k_links: A dictionary where each key is a target node, and the value is a list of recommended item IDs.
     """
+    all_node_ids, node_to_index = get_node_id_index(df)
+    
     model.eval()
     z = model.encode(data.x, data.edge_index)
     
@@ -200,3 +213,37 @@ def get_top_k_links_per_node(model, data, df, all_node_ids, node_to_index):
         top_k_links[target] = top_k_ids
     
     return top_k_links
+
+
+def get_test_report(model, model_path, data, df):
+    """
+    Evaluates the GNN model on test data and prints performance metrics including Mean Reciprocal Rank (MRR),
+    Mean Average Precision at various levels of K (MAP@K), and Recall at K for different values of K.
+
+    Parameters:
+    - model (torch.nn.Module): The trained GNN model ready for evaluation.
+    - model_path (str): Path to the saved model; used if model needs to be loaded.
+    - data (Data): PyTorch Geometric Data object used for model evaluation.
+    - df (pd.DataFrame): DataFrame containing the ground truth links for evaluation
+    
+    Note:
+    - It is assumed that 'get_relevant_items', 'get_top_k_links_per_node', 'mean_reciprocal_rank',
+      'mean_average_precision_at_k', and 'recall_at_k' are predefined functions available in the scope.
+    """
+    # Check if the model file exists
+    if not os.path.exists(model_path):
+            raise FileNotFoundError(f"No trained model found at {model_path}. Please run in 'train' mode first.")
+            
+    model.load_state_dict(torch.load(model_path))
+    model.eval()  # Set the model to evaluation mode
+        
+    all_node_ids, node_to_index = get_node_id_index(df)
+    relevant_items = get_relevant_items(df)
+    top_k_links = get_top_k_links_per_node(model, data, df)
+    
+    print('Test data recommendations performance:')
+    print(f'Mean Reciprocal Rank: {mean_reciprocal_rank(top_k_links, relevant_items)}')
+    for k in [5, 10, 30, 50, 80]:
+        print(f'Mean Average Precision@{k}: {mean_average_precision_at_k(top_k_links, relevant_items, k)}')          
+    for k in [5, 10, 30, 50, 80]:
+        print(f'Recall@{k}: {recall_at_k(top_k_links, relevant_items, k)}')

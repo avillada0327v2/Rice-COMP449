@@ -33,33 +33,6 @@ def process_text(tokenizer, model, context):
     
     return cls_embedding
 
-def get_citation_text_id(df):
-    """
-    Generates a unique ID for each unique cited text combination in the DataFrame.
-
-    This function adds a new column to the DataFrame, 'cited_text', which is a combination
-    of 'left_cited_text' and 'right_cited_text'. It then creates a mapping from each unique
-    cited text to a unique ID and assigns these IDs to a new column, 'cited_text_id'.
-
-    Parameters:
-    - df (pd.DataFrame): The DataFrame containing the citation texts.
-
-    Returns:
-    - pd.DataFrame: The original DataFrame augmented with 'cited_text' and 'cited_text_id' columns.
-    """
-    
-    # Combine the left and right cited text with a space in between to form a complete citation
-    df['citated_text'] = df['left_citated_text'] + " " + df['right_citated_text']
-    
-    # Create a dictionary mapping each unique cited text to a unique ID
-    # Using enumerate ensures each cited text gets a unique, sequential ID
-    cited_voca = {text: id_ for id_, text in enumerate(df['citated_text'].unique())}
-    
-    # Map the cited texts in the DataFrame to their respective IDs
-    # The mapping uses the dictionary created above
-    df['citated_text_id'] = df['citated_text'].map(cited_voca)
-    
-    return df
 
 def generate_source_abstract_embeddings_dict(tokenizer, model, df):
     """
@@ -82,6 +55,7 @@ def generate_source_abstract_embeddings_dict(tokenizer, model, df):
     filename = 'full_cls_source_abstract_embeddings.pkl'
     with open(filename, 'wb') as file:
         pickle.dump(abstract_embeddings, file)
+
         
 def get_source_abstract_embeddings():
     """
@@ -99,6 +73,7 @@ def get_source_abstract_embeddings():
     # Adjust the dimensions of the embeddings
     abstract_embeddings = {key: val.squeeze(0) for key, val in abstract_embeddings.items()}
     return abstract_embeddings
+
 
 def generate_citated_text_embeddings_dict(tokenizer, model, df):
     """
@@ -121,6 +96,7 @@ def generate_citated_text_embeddings_dict(tokenizer, model, df):
     filename = 'full_cls_citated_text_embeddings.pkl'
     with open(filename, 'wb') as file:
         pickle.dump(citated_embeddings, file)   
+
         
 def get_target_embeddings(df):
     """
@@ -177,6 +153,7 @@ def generate_missing_embeddings(tokenizer, model):
     with open(filename, 'wb') as file:
         pickle.dump(missing_embeddings, file)
 
+        
 def get_missing_embeddings():
     """
     Load the missing embeddings from a pickle file.
@@ -203,10 +180,10 @@ def generate_embeddings(df):
     - df (pd.DataFrame): DataFrame containing citation data with 'source_abstract' and 'cited_context' fields.
     
     The function saves embeddings to disk and does not return any value.
-    """
+    """        
     set_seeds(42)
-    # Preprocess and combine text
-    df = get_citation_text_id(df)
+    if 'source_abstract' not in df.columns or 'cited_text' not in df.columns or 'citated_text_id' not in df.column:
+        raise ValueError("DataFrame must contain 'source_abstract', 'cited_text' and 'citated_text_id' columns.")
     
     # Load pre-trained model and tokenizer
     model_name = 'bert-base-uncased'

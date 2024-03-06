@@ -20,6 +20,69 @@ def set_seeds(seed=42):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     
+def get_citation_text_id(df):
+    """
+    Generates a unique ID for each unique cited text combination in the DataFrame.
+
+    This function adds a new column to the DataFrame, 'cited_text', which is a combination
+    of 'left_cited_text' and 'right_cited_text'. It then creates a mapping from each unique
+    cited text to a unique ID and assigns these IDs to a new column, 'cited_text_id'.
+
+    Parameters:
+    - df (pd.DataFrame): The DataFrame containing the citation texts.
+
+    Returns:
+    - pd.DataFrame: The original DataFrame augmented with 'cited_text' and 'cited_text_id' columns.
+    """
+    
+    # Combine the left and right cited text with a space in between to form a complete citation
+    df['citated_text'] = df['left_citated_text'] + " " + df['right_citated_text']
+    
+    # Create a dictionary mapping each unique cited text to a unique ID
+    # Using enumerate ensures each cited text gets a unique, sequential ID
+    cited_voca = {text: id_ for id_, text in enumerate(df['citated_text'].unique())}
+    
+    # Map the cited texts in the DataFrame to their respective IDs
+    # The mapping uses the dictionary created above
+    df['citated_text_id'] = df['citated_text'].map(cited_voca)
+    
+    return df
+
+def data_preprocess(data):
+    """
+    Loads a dataset from a CSV file and preprocesses it by assigning unique IDs to citation texts.
+    
+    Parameters:
+    - data (str or pd.DataFrame): The path to the CSV file containing the dataset or a DataFrame.
+    
+    Returns:
+    - pd.DataFrame: A DataFrame with the preprocessing applied.
+    - None: If the file is not found or an error occurs during loading.
+    """
+    # Validate input
+    if isinstance(data, pd.DataFrame):
+        df = data.copy()
+    elif isinstance(data, str):
+        try:
+            df = pd.read_csv(data)
+        except FileNotFoundError:
+            print(f"CSV file '{data}' not found.")
+            return None
+        except Exception as e:
+            print(f"An error occurred while loading the CSV file: {e}")
+            return None
+    else:
+        print("Input type for 'data' is not recognized. Please provide a file path or a DataFrame.")
+        return None
+
+    # Assuming get_citation_text_id is a function that you've defined elsewhere
+    try:
+        df = get_citation_text_id(df)
+    except Exception as e:
+        print(f"An error occurred during preprocessing: {e}")
+        return None
+
+    return df
 
 def get_relevant_items(df):
     """
