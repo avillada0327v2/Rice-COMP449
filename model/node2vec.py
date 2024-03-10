@@ -1,3 +1,8 @@
+"""
+Builds, runs, and evaluates a node2vec model's ability to perform link prediction.
+Used as a baseline model for overall project.
+"""
+
 import torch
 import torch.optim as optim
 from torch_geometric.nn import Node2Vec

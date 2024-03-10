@@ -1,3 +1,6 @@
+"""
+Builds, runs, and evaluates a GNN model using GCN layers for link prediction.
+"""
 import torch
 import torch.nn.functional as F
 from sklearn.metrics import roc_auc_score
