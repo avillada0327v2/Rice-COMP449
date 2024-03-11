@@ -2,7 +2,7 @@
 Utility functions for parsing and extracting paper and citation data.
 """
 import re
-import tree
+import data.arxivCS_data_retrieval.utils.tree as tree
 import json
 
 def build_trie(path: str, files: list) -> tree.Tree:

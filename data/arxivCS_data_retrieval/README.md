@@ -13,11 +13,14 @@ Follow installation directions in root directory.
 # Data Preparation
 
 1. [ArxivCS](https://www.dropbox.com/s/iltvodnh2mldgub/dss.tar.gz?dl=0)
-   Download the dataset from this link and unzip it in this directory.
+
+   Download the dataset from this link and unzip it in the data subdirectory 
+   located in this directory.
 
 # Running the ArxivCS Data Wrangler and Compiler
 
-Run the data_wrangle_script.py file with
+Run the data_wrangle_script.py file within this directory using the following
+command
 ```python
 python data_wrangle_script.py 
 ```

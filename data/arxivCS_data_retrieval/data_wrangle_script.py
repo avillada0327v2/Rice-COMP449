@@ -4,7 +4,7 @@ Data wrangler and compiler for ArxivCS source and destination citation dataset.
 from os import listdir
 import csv
 import json
-import paper_parser_utils
+import utils.paper_parser_utils as paper_parser_utils
 
 def build_citations_data() -> list:
     """
@@ -16,7 +16,7 @@ def build_citations_data() -> list:
     - The list of citation data 
     """
     # Get sub directories of interest
-    base_path = "dss"
+    base_path = "data/dss"
     sub_dirs = [e for e in listdir(base_path)]
     omit_dir = "scholarly"
     sub_dirs.remove(omit_dir)
