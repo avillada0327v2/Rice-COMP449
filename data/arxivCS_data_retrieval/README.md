@@ -25,7 +25,7 @@ command
 python data_wrangle_script.py 
 ```
 
-After running, look for a new CSV file. The generated CSV file has the following structure:
+After running, a new CSV file will be generated in this same directory. The generated CSV file has the following structure:
 
 * Rows:
 
