@@ -14,8 +14,8 @@ Follow installation directions in root directory.
 
 1. [ArxivCS](https://www.dropbox.com/s/iltvodnh2mldgub/dss.tar.gz?dl=0)
 
-   Download the dataset from this link and unzip it in the data subdirectory 
-   located in this directory.
+   Download the dataset from the link above. Create a folder named "data" within this directory. Move and unzip the downloaded zip file in
+   the newly created data subdirectory.
 
 # Running the ArxivCS Data Wrangler and Compiler
 
