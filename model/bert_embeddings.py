@@ -1,11 +1,14 @@
+import pandas as pd
 import pickle
 import gc  # Garbage Collector interface
 import os
 import torch
 import random
 import numpy as np
-import pandas as pd
+import warnings
 from transformers import BertTokenizer, BertModel
+
+warnings.filterwarnings("ignore", category=UserWarning, message=".*TypedStorage is deprecated.*")
 
 def set_seeds(seed=42):
     """Set seeds for reproducibility."""
@@ -194,13 +197,13 @@ def generate_embeddings(df):
     The function saves embeddings to disk and does not return any value.
     """        
     
-    if 'source_abstract' not in df.columns or 'citated' not in df.columns or 'citated_text_id' not in df.column:
+    if 'source_abstract' not in df.columns or 'citated_text' not in df.columns or 'citated_text_id' not in df.columns:
         raise ValueError("DataFrame must contain 'source_abstract', 'cited_text' and 'citated_text_id' columns.")
         
     set_seeds(42)
     
     # Load pre-trained model and tokenizer
-    model_name = 'bert-base-uncased'
+    model_name = 'allenai/scibert_scivocab_uncased'#'bert-base-uncased'
     tokenizer = BertTokenizer.from_pretrained(model_name)
     model = BertModel.from_pretrained(model_name).eval()
     
