@@ -206,7 +206,7 @@ def generate_embeddings(df):
     
     # Assuming each function below properly handles batch processing and saves embeddings to disk.
     generate_source_abstract_embeddings_dict(tokenizer, model, df)  # Embeddings for source abstract
-    generate_cited_embeddings_dict(tokenizer, model, df)  # Embeddings for cited context
+    generate_citated_text_embeddings_dict(tokenizer, model, df)  # Embeddings for cited context
     generate_missing_embeddings(tokenizer, model)  # Embeddings for missing abstracts or contexts
 
     
