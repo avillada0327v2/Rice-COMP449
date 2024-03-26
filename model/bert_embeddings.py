@@ -1,12 +1,8 @@
-"""
-Functionality for building BERT models and generating embeddings
-given citation contexts from research papers.
-"""
-import torch
 import pandas as pd
 import pickle
 import gc  # Garbage Collector interface
 import os
+import torch
 from transformers import BertTokenizer, BertModel
 from model.utils import *
 
@@ -186,12 +182,14 @@ def generate_embeddings(df):
     
     The function saves embeddings to disk and does not return any value.
     """        
-    set_seeds(42)
-    if 'source_abstract' not in df.columns or 'cited_text' not in df.columns or 'citated_text_id' not in df.column:
+    
+    if 'source_abstract' not in df.columns or 'citated' not in df.columns or 'citated_text_id' not in df.column:
         raise ValueError("DataFrame must contain 'source_abstract', 'cited_text' and 'citated_text_id' columns.")
+        
+    set_seeds(42)
     
     # Load pre-trained model and tokenizer
-    model_name = 'bert-base-uncased'
+    model_name = 'allenai/scibert_scivocab_uncased'#'bert-base-uncased'
     tokenizer = BertTokenizer.from_pretrained(model_name)
     model = BertModel.from_pretrained(model_name).eval()
     
