@@ -203,7 +203,7 @@ def generate_embeddings(df):
     set_seeds(42)
     
     # Load pre-trained model and tokenizer
-    model_name = 'allenai/scibert_scivocab_uncased'#'bert-base-uncased'
+    model_name = 'bert-base-uncased'
     tokenizer = BertTokenizer.from_pretrained(model_name)
     model = BertModel.from_pretrained(model_name).eval()
     
