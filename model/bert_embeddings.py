@@ -3,11 +3,12 @@ Functionality for building BERT models and generating embeddings
 given citation contexts from research papers.
 """
 import torch
-from transformers import BertTokenizer, BertModel
 import pandas as pd
 import pickle
 import gc  # Garbage Collector interface
 import os
+from transformers import BertTokenizer, BertModel
+from model.utils import *
 
 def process_text(tokenizer, model, context):
     """
