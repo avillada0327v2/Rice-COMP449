@@ -29,13 +29,16 @@ def build_citations_data() -> list:
     # Citation context data
     citations_data = []
 
+    # Citated text id
+    citated_texts = []
+
     # Go through each dir
     for dir in sub_dirs:
         files = [f1 for f1 in listdir(base_path + "/" + dir)]
         files.sort()
         # Compile all meta data to tree (node = letter and meta data) for 
         # citation destination meta data matching and retrieval
-        meta_tree = paper_parser_utils.build_tree(base_path + "/" + dir + "/", files)
+        meta_tree = paper_parser_utils.build_trie(base_path + "/" + dir + "/", files)
 
         # Perform sliding window with files where meta, refs, and txt file 
         # corresponds to paper with citation
@@ -53,7 +56,7 @@ def build_citations_data() -> list:
                 (files[curr_beg_ptr][:-len(meta_ext)] ==
                 files[curr_beg_ptr + 1][:-len(refs_ext)] ==
                 files[curr_beg_ptr + 2][:-len(txt_ext)])):
-                currBegPtr += 1
+                curr_beg_ptr += 1
                 continue
 
             # Get file path with common file name without extension
@@ -83,15 +86,13 @@ def build_citations_data() -> list:
             
             # Pair contexts with citation/ref data
             for context in contexts:
-                citation_info = paper_parser_utils.extractCitation(context)
-                new_context = citation_info.get("new_text")
-                all_citations = citation_info.get("citations")
+                citation_info = paper_parser_utils.extract_citation(context)
 
-                for citation in all_citations:
+                for citation in citation_info.keys():
                     # Find reference of current context of citation if exists.
                     # If it doesn't, skip iteration
                     dest_paper = paper_parser_utils.find_ref(citation, references)
-                    dest_year = paper_parser_utils.getYear(dest_paper)
+                    dest_year = paper_parser_utils.get_year(dest_paper)
                     if not (dest_paper != "" and 
                         dest_year != "" and 
                         int(dest_year) >= 1900 and 
@@ -100,22 +101,44 @@ def build_citations_data() -> list:
 
                     # Extract destination URL with trimmed URL source prefix
                     dest_URL = (dest_paper[len("DBLP:"):dest_paper.find(";")] 
-                               if dest_URL.startswith("DBLP:") 
+                               if dest_paper.startswith("DBLP:") 
                                else dest_paper[len("GC:"):dest_paper.find(";")])
                     
                     # Find target meta data corresponding to this citation
                     target_node = meta_tree.find_node(dest_URL)
+
+                    # Get and store this citation text
+                    curr_text = citation_info[citation]
+
+                    # Find citated text id. If it doesn't exist, add
+                    text_id = -1
+                    if (curr_text[0] + curr_text[1]) not in citated_texts:
+                        citated_texts.append(curr_text[0] + curr_text[1])
+                        text_id = len(citated_texts) - 1
+                    else:
+                        text_id = citated_texts.index(curr_text[0] + curr_text[1])
+
+
                     if target_node != None:
                         # Compile citation data 
                         citations_data.append({
-                            'src_URL': src_URL,
-                            'src_authors': src_authors,
-                            'src_title': src_title,
-                            'src_context': new_context.replace("\n", ""),
-                            'dest_URL': dest_URL,
-                            'dest_authors': target_node.authors,
-                            'dest_title': target_node.title,
-                            'dest_year': dest_year
+                            'right_citated_text': citation_info[citation][1],
+                            'left_citated_text': citation_info[citation][0],
+                            'source_abstract': "",
+                            'source_author': src_authors,
+                            'source_id': src_URL,
+                            'source_title': src_title,
+                            'source_venue': "arxiv",
+                            'source_year': "",
+                            'target_id': dest_URL,
+                            'target_author': target_node.authors,
+                            'target_abstract': "",
+                            'target_year': dest_year,
+                            'target_title': target_node.title,
+                            'target_venue': "arxiv",
+                            'citated_text': citation_info[citation][0] + \
+                                                citation_info[citation][1],
+                            'citated_text_id': text_id
                         })
                         break
             curr_beg_ptr += 1
@@ -131,10 +154,14 @@ def build_csv_file(citations_data):
     - The list of citation data 
     """
     # Build CSV file
-    with open('test.csv', 'w', newline='') as csvfile:
+    with open('arxivCS.csv', 'w', newline='') as csvfile:
         data = citations_data
-        fieldnames = ['src_URL', 'src_authors', 'src_title', 'src_context', 'dest_URL', 
-                    'dest_authors', 'dest_title', 'dest_year'] 
+        fieldnames = ['right_citated_text', 'left_citated_text', 
+                      'source_abstract', 'source_author', 'source_id', 
+                      'source_title', 'source_venue', 'source_year', 
+                      'target_id', 'target_author', 'target_abstract', 
+                      'target_year', 'target_title', 'target_venue', 
+                      'citated_text', 'citated_text_id'] 
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(data)

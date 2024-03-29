@@ -2,7 +2,7 @@
 Trie implementation module for storing research paper meta data based on
 paper URL.
 """
-import node
+import utils.node as node
 class Tree:
     """
     A trie where if the node is the final letter of the paper URL, the node

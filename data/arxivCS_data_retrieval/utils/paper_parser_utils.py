@@ -2,7 +2,7 @@
 Utility functions for parsing and extracting paper and citation data.
 """
 import re
-import data.arxivCS_data_retrieval.utils.tree as tree
+import utils.tree as tree
 import json
 
 def build_trie(path: str, files: list) -> tree.Tree:
@@ -57,29 +57,39 @@ def extract_citation(citation_context: str) -> dict:
     "citations", a list representing all the citations found in the context 
     represented by their URL address
     """
-    new_text = ""
     citations = []
+    ranges = []
     opened = False
     construct_citation = ""
-    interest = {}
-    for char in citation_context:
-        if char == "<":
+    startIdx = 0
+    # Find citations and their ranges in text for post pass removal
+    for charIdx in range(0, len(citation_context)):
+        currChar = citation_context[charIdx]
+        if currChar == "<":
             if (opened):
                 construct_citation = ""  
+            startIdx = charIdx
             opened = True          
-        elif char == ">":
+        elif currChar == ">":
             if (opened and (construct_citation.startswith("GC") or
                             construct_citation.startswith("DBLP"))):
                 citations.append(construct_citation)
+                ranges.append([startIdx, charIdx])
             construct_citation = ""
             opened = False
         else:
             if (opened):
-                construct_citation += char
-            else:
-                new_text += char
-    interest["new_text"] = new_text
-    interest["citations"] = citations
+                construct_citation += currChar
+
+    # Collect left and right cited texts and aggregate citation info
+    interest = {}
+    for citationIdx in range(0, len(citations)):
+        currRange = ranges[citationIdx]
+        interest[citations[citationIdx]] = \
+            [citation_context[0:currRange[0]], citation_context[currRange[1] + 1:]]
+        
+
+    
     return interest
 
 def find_ref(citation: str, references: list) -> str:
