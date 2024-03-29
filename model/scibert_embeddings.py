@@ -9,6 +9,12 @@ warnings.filterwarnings("ignore")
 tokenizer = AutoTokenizer.from_pretrained('allenai/scibert_scivocab_uncased')
 model = AutoModel.from_pretrained('allenai/scibert_scivocab_uncased')
 
+# Load your fine-tuned model weights
+checkpoint = torch.load('best_model.pth', map_location=torch.device('cpu'))
+
+# Apply the weights to your model
+model.load_state_dict(checkpoint)
+
 
 def generate_embeddings(df, model, tokenizer):
     """
