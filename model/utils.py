@@ -1,6 +1,3 @@
-"""
-Common utility functions for model procedures.
-"""
 import os  # Operating system interfaces
 import gc  # Garbage Collector interface
 import numpy as np  # Support for large, multi-dimensional arrays and matrices
@@ -15,6 +12,7 @@ from torch_geometric.data import Data  # Data handling of graphs in PyTorch Geom
 from torch.utils.data import DataLoader, TensorDataset  # DataLoader and Dataset wrapping tensors for PyTorch
 from transformers import BertTokenizer, BertModel  # BERT model and tokenizer from Hugging Face's Transformers library
 from model.bert_embeddings import *
+import matplotlib.pyplot as plt
 
 
 def set_seeds(seed=42):
@@ -208,7 +206,7 @@ def recall_at_k(recommended_items, relevant_items, k=5):
         true_positives_at_k = set(recommendations[:k]).intersection(relevant_items.get(target, []))
         if relevant_items.get(target):
             recalls.append(len(true_positives_at_k) / len(relevant_items[target]))
-    return sum(recalls) / len(recalls) if recalls else 0
+    return round(sum(recalls) / len(recalls), 3) if recalls else 0
 
 
 def mean_reciprocal_rank(recommended_items, relevant_items):
@@ -234,7 +232,7 @@ def mean_reciprocal_rank(recommended_items, relevant_items):
                 break  # Only consider the first relevant item
     
     # Calculate the mean of the reciprocal ranks; return 0 if rr is empty
-    return sum(rr) / len(rr) if rr else 0
+    return round(sum(rr) / len(rr), 3) if rr else 0
 
 
 def mean_average_precision_at_k(recommended_items, relevant_items, k):
@@ -266,7 +264,7 @@ def mean_average_precision_at_k(recommended_items, relevant_items, k):
             ap.append(0)  # Append 0 for targets with no relevant items to ensure fairness
 
     # Calculate the mean of the average precisions; return 0 if ap is empty
-    return sum(ap) / len(ap) if ap else 0
+    return round(sum(ap) / len(ap), 3) if ap else 0
 
 
 def metric_evaluation_table(models):
@@ -295,3 +293,61 @@ def metric_evaluation_table(models):
 
     # Return the comparison DataFrame
     return df_comparison
+
+def plot_result(evaluation_table):
+    """
+    Plot the MRR performance and MAP, Recall scores for different models.
+
+    The function takes an evaluation table as input and produces three plots:
+    1. A bar plot for MRR performance per model.
+    2. A line plot for MAP scores at different cut-offs for each model.
+    3. A line plot for Recall scores at different cut-offs for each model.
+
+    Parameters:
+    - evaluation_table (DataFrame): A pandas DataFrame containing the MRR, MAP, and Recall metrics for different models.
+    """
+    # Bar plot for MRR Performance per Model
+    plt.figure(figsize=(10, 5))
+    evaluation_table['MRR'].plot(kind='bar', color=['powderblue', 'lightskyblue', 'steelblue'])
+    plt.title('MRR Performance per Model')
+    plt.ylabel('MRR')
+    plt.xticks(rotation=45)
+    plt.grid(True)
+    plt.show()
+
+    # Line plot for MAP Scores for Different Models
+    plt.figure(figsize=(10, 5))
+    for model, color in zip(list(evaluation_table.index), ['powderblue', 'lightskyblue', 'steelblue']):
+        plt.plot(['MAP@5', 'MAP@10', 'MAP@30', 'MAP@50', 'MAP@80'], 
+                 [evaluation_table.loc[model]['MAP@5'], 
+                  evaluation_table.loc[model]['MAP@10'], 
+                  evaluation_table.loc[model]['MAP@30'], 
+                  evaluation_table.loc[model]['MAP@50'], 
+                  evaluation_table.loc[model]['MAP@80']], 
+                 marker='o', label=model, color=color)
+    plt.title('MAP Scores for Different Models')
+    plt.ylabel('MAP Score')
+    plt.legend(title='Model', loc='center left', bbox_to_anchor=(1, 0.5))
+    # Adjust the layout so the legend is fully visible
+    plt.tight_layout(rect=[0, 0, 0.75, 1])
+    plt.grid(True)
+    plt.show()
+
+    # Line plot for Recall Scores for Different Models
+    plt.figure(figsize=(10, 5))
+    for model, color in zip(list(evaluation_table.index), ['powderblue', 'lightskyblue', 'steelblue']):
+        plt.plot(['Recall@5' ,'Recall@10', 'Recall@30', 'Recall@50', 'Recall@80'], 
+                 [evaluation_table.loc[model]['Recall@5'], 
+                  evaluation_table.loc[model]['Recall@10'], 
+                  evaluation_table.loc[model]['Recall@30'], 
+                  evaluation_table.loc[model]['Recall@50'], 
+                  evaluation_table.loc[model]['Recall@80']], 
+                 marker='o', label=model, color=color)
+    plt.title('Recall Scores for Different Models')
+    plt.ylabel('Recall Score')
+    plt.legend(title='Model', loc='center left', bbox_to_anchor=(1, 0.5))
+    # Adjust the layout so the legend is fully visible
+    plt.tight_layout(rect=[0, 0, 0.75, 1])
+    plt.grid(True)                                        
+    plt.show()                                       
+                                        
