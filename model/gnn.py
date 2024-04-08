@@ -3,6 +3,7 @@ Builds, runs, and evaluates a GNN model using GCN layers for link prediction.
 """
 import torch
 import torch.nn.functional as F
+from torch.nn import Dropout
 from sklearn.metrics import roc_auc_score
 from torch_geometric.nn import GCNConv
 from torch_geometric.nn import GATConv
@@ -11,7 +12,7 @@ from torch_geometric.transforms import RandomLinkSplit
 from model.utils import *
 
 
-class Net(torch.nn.Module):
+class GCN(torch.nn.Module):
     """
     A Graph Neural Network (GNN) model using Graph Convolutional Network (GCN) layers for link prediction.
     
@@ -31,6 +32,38 @@ class Net(torch.nn.Module):
         x = F.relu(self.conv1(x, edge_index))
         x = F.relu(self.conv2(x, edge_index))
         return self.conv3(x, edge_index)
+
+    def decode(self, z, edge_label_index):
+        """Decodes node embeddings to predict link existence."""
+        return (z[edge_label_index[0]] * z[edge_label_index[1]]).sum(dim=-1)
+
+    def decode_all(self, z):
+        """Decodes node embeddings to predict all possible links."""
+        return (z @ z.t() > 0).nonzero(as_tuple=False).t()
+    
+
+class GAT(torch.nn.Module):
+    """
+    A Graph Neural Network (GNN) model using Graph Attention Network (GAT) layers for link prediction.
+    
+    Parameters:
+    - in_channels (int): Number of features per input node.
+    - hidden_channels (int): Number of features per node in hidden layers.
+    - out_channels (int): Number of features per output node.
+    """
+    def __init__(self, in_channels, hidden_channels, out_channels):
+        super().__init__()
+        self.conv1 = GATConv(in_channels, hidden_channels)
+        self.conv2 = GATConv(hidden_channels, hidden_channels)
+        self.conv3 = GATConv(hidden_channels, hidden_channels)
+        self.conv4 = GCNConv(hidden_channels, out_channels)
+
+    def encode(self, x, edge_index):
+        """Encodes graph data into node embeddings."""
+        x = F.relu(self.conv1(x, edge_index))
+        x = F.relu(self.conv2(x, edge_index))
+        x = F.relu(self.conv3(x, edge_index))
+        return self.conv4(x, edge_index)
 
     def decode(self, z, edge_label_index):
         """Decodes node embeddings to predict link existence."""
@@ -182,13 +215,14 @@ def get_gnn_test_report(model, model_path, data, df):
     return report
 
         
-def run_gnn(df, mode, model_path):
+def run_gnn(df, mode, model, model_path):
     """
     Orchestrates the workflow for training and evaluating a GNN link prediction model based on provided data.
     
     Parameters:
     - df: DataFrame containing citation data.
     - mode (str): Specifies the operation mode. Supported modes: 'train', 'evaluate'.
+    - model (str): Specifies which GNN model we gonna use. Supported model: 'GCN', 'GAT'.
     - model_path (str): Path where the trained model is saved or to be saved.
     """
     if mode not in ['train', 'evaluate']:
@@ -209,13 +243,28 @@ def run_gnn(df, mode, model_path):
     
     train_data, val_data, test_data = split(graph)
     
+    parameters = {'GCN':{'hidden_channels': 64, 'output_channels': 64, 'epochs': 2200},
+                  'GAT':{'hidden_channels': 70, 'output_channels': 64, 'epochs': 600}
+                 }
+    
     # Model training
-    gnn_model = Net(graph.num_features, 64, 64)
+    if model == 'GCN':
+        gnn_model = GCN(graph.num_features, 
+                        parameters['GCN']['hidden_channels'], 
+                        parameters['GCN']['output_channels'])
+        epochs = parameters['GCN']['epochs']
+        
+    elif model == 'GAT':
+        gnn_model = GAT(graph.num_features, 
+                        parameters['GAT']['hidden_channels'], 
+                        parameters['GAT']['output_channels'])
+        epochs = parameters['GAT']['epochs']
+        
     optimizer = torch.optim.Adam(params=gnn_model.parameters(), lr=0.001)
     criterion = torch.nn.BCEWithLogitsLoss()
     
     if mode == 'train':
-        gnn_model = train_gnn_link_predictor(gnn_model, train_data, val_data, optimizer, criterion, 1000, model_path)
+        gnn_model = train_gnn_link_predictor(gnn_model, train_data, val_data, optimizer, criterion, epochs, model_path)
     
     # Performance evaluation
     if mode == 'evaluate':
