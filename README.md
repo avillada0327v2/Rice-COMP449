@@ -1,5 +1,3 @@
-Absolutely, here is how you could structure the README section regarding the pre-trained models and embeddings:
-
 ---
 
 # Citation Recommendation System
