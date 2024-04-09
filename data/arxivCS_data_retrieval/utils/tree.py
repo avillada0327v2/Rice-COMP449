@@ -15,11 +15,10 @@ class Tree:
         """
         Adds node to tree. 
 
-        Parameters 
-        ----------
-        word: URL of the research paper 
-        authors: authors of the research paper
-        title: title of the research paper
+        Parameters: 
+        - word (str): URL of the research paper 
+        - authors (str): authors of the research paper
+        - title (str): title of the research paper
         """
         self.root.add_child(word, authors, title)
 
@@ -29,12 +28,10 @@ class Tree:
         the meta data of a research paper, if it exists.
         Otherwise returns None.
 
-        Parameters 
-        ----------
-        word: full URL of the research paper desired
+        Parameters: 
+        - word (str): full URL of the research paper desired
 
-        Returns
-        -------
+        Returns:
         The research paper node containing its meta data if found.
         Otherwise returns none. 
         """
