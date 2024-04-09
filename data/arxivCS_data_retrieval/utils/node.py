@@ -7,8 +7,7 @@ class Node:
     A node representing a research paper if its associated letter 
     is the last letter corresponding to a research paper's URL. 
 
-    Attributes
-    ----------
+    Attributes:
     letter: associated letter for this node in the trie
     authors: authors associated with the research paper if 
             there exists a research paper URL ending with the letter
@@ -17,21 +16,19 @@ class Node:
         there exists a research paper URL ending with the letter 
         corresponding to this node
 
-    Methods
-    -------
+    Methods:
     add_child: Adds child with research paper meta data to trie
     find_child:
     """
 
     def __init__(self, letter: str, authors: str, title: str):
         """
-        Parameters
-        ----------
-        letter: associated letter for this node in the trie
-        authors: authors associated with the research paper if 
+        Parameters:
+        - letter (str): associated letter for this node in the trie
+        - authors (str): authors associated with the research paper if 
             there exists a research paper URL ending with the letter
             corresponding to this node
-        title: title associated with the research paper if
+        - title (str): title associated with the research paper if
             there exists a research paper URL ending with the letter 
             corresponding to this node
         """
@@ -46,11 +43,10 @@ class Node:
         its final letter, it delegates this task to one of its children 
         recursively.
 
-        Parameters
-        ----------
-        word: remaining URL of research paper 
-        authors: authors of research paper 
-        title: title of research paper
+        Parameters:
+        - word (str): remaining URL of research paper 
+        - authors (str): authors of research paper 
+        - title (str): title of research paper
         """
         if len(word) > 1: # more letters
             # find child that contains next letter if exists
@@ -77,9 +73,8 @@ class Node:
         Recursively goes down trie starting at this node and returns 
         child containing research paper meta data if it exists. 
 
-        Parameters 
-        ----------
-        word: remaining URL of research paper 
+        Parameters:
+        - word (str): remaining URL of research paper 
         """
         if len(word) > 0:
             for child in self.letter_childs:
