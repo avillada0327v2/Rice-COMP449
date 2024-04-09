@@ -10,13 +10,11 @@ def build_trie(path: str, files: list) -> tree.Tree:
     Builds trie by finding meta data files and adding nodes representing
     the path with the final node holding an embedding of the meta data.
 
-    Parameters
-    ----------
-    - path: base path of the list of file names passed in as the other parameter
-    - files: list of file names  
+    Parameters:
+    - path (str): base path of the list of file names passed in as the other parameter
+    - files (list): list of file names  
 
-    Returns
-    -------
+    Returns:
     - A trie containing meta file names with meta data embeddings in the leaves
     """
     fileIdx = 0
@@ -46,12 +44,10 @@ def extract_citation(citation_context: str) -> dict:
     returning the URL of the papers cited as well as the original 
     paper section with the citation references removed. 
 
-    Parameters
-    ----------
-    - citation_context: full context of a citation
+    Parameters:
+    - citation_context (str): full context of a citation
 
-    Returns
-    -------
+    Returns:
     - A dictionary mapping "new_text" to the original full context of the
     citation with all citation references, encapsulated by <>, removed and 
     "citations", a list representing all the citations found in the context 
@@ -99,13 +95,11 @@ def find_ref(citation: str, references: list) -> str:
 
     If no reference found, returns an empty string.
     
-    Parameters
-    ----------
-    - citation: citation URL reference
-    - references: list of full name citation URL references
+    Parameters:
+    - citation (str): citation URL reference
+    - references (list): list of full name citation URL references
 
-    Returns
-    -------
+    Returns:
     - The full name citation URL reference the citation is referencing
     """
     for ref in references:
@@ -118,12 +112,10 @@ def get_year(paper) -> str:
     Gets year of paper publication based on long title name
     of paper.
 
-    Parameters
-    ----------
-    - paper: long title of research paper
+    Parameters:
+    - paper (str): long title of research paper
 
-    Returns
-    -------
+    Returns:
     - The year the paper was published or an empty string if the
     year cannot be found
     """
