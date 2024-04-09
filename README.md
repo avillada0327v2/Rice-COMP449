@@ -21,7 +21,7 @@ pip install -r requirements.txt
   * `BERT Embeddings`
   * `GNN model (GCN, GAT)`
   * `baseline model using Node2vec`
-  * Data pre-processing and evaluation metric functions
+  * `Data pre-processing and evaluation metric functions`
 
 To save time and not re-run BERT and the GNN model, you can download the pre-computed embeddings and models from here:
 ```
