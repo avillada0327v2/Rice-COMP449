@@ -16,11 +16,13 @@ pip install -r requirements.txt
 
 * arxivCS_data_retrieval: Functions to extract data from arxivCS to build a dataset. 
 * data: The folder to put the data
-* model: 
+* model:
+  * fine-tuning BERT
   * BERT Embeddings
-  * GNN model
+  * GNN model(GCN, GAT)
   * baseline model using Node2vec
   * Data pre-processing and evaluation metric functions
+  
 
 ## Data Preparation
 
