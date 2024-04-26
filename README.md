@@ -1,8 +1,12 @@
 ---
 
-# Citation Recommendation System
+# Research Paper Recommendation System
 
 This project demonstrates a citation recommendation system using Node2Vec and BERT+GNN models on the PeerRead dataset. It provides instructions for preprocessing data, training models, and evaluating their performance.
+
+## Paper Pilot Team Members
+
+Sharath Giri, Judy Fang, Jerry Jiang, Jacky Jiang, James Murphy, & Andres Villada
 
 ## Installation
 
