@@ -4,9 +4,28 @@
 
 This project demonstrates a citation recommendation system using Node2Vec and BERT+GNN models on the PeerRead dataset. It provides instructions for preprocessing data, training models, and evaluating their performance.
 
+![PaperPilotLogo](https://github.com/avillada0327v2/Rice-COMP449/assets/142918860/8a23ddf3-61bf-4c6d-9c77-e810103795df)
+
 ## Paper Pilot Team Members
 
 Sharath Giri, Judy Fang, Jerry Jiang, Jacky Jiang, James Murphy, & Andres Villada
+
+## Repository Structure
+```bash
+Rice-COMP449/
+├── data
+│   └── 
+├── model
+│   └── autoencoder
+├── D2K Poster.pptx
+│   
+│
+└── README.md
+│
+└── requirements.txt
+└── run.ipynb
+
+```
 
 ## Installation
 
