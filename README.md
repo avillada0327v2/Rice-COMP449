@@ -10,23 +10,6 @@ This project demonstrates a citation recommendation system using Node2Vec and BE
 
 Sharath Giri, Judy Fang, Jerry Jiang, Jacky Jiang, James Murphy, & Andres Villada
 
-## Repository Structure
-```bash
-Rice-COMP449/
-├── data
-│   └── 
-├── model
-│   └── autoencoder
-├── D2K Poster.pptx
-│   
-│
-└── README.md
-│
-└── requirements.txt
-└── run.ipynb
-
-```
-
 ## Installation
 
 Ensure you have Python 3.9 + installed. Clone this repository and navigate to the project directory. Install dependencies using:
@@ -35,7 +18,7 @@ Ensure you have Python 3.9 + installed. Clone this repository and navigate to th
 pip install -r requirements.txt
 ```
 
-## Contents
+## Directory and Contents
 
 * `arxivCS_data_retrieval`: Functions to extract data from arxivCS to build a dataset. 
 * `data`: The folder to put the data.
