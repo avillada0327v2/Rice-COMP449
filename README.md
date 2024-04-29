@@ -42,12 +42,6 @@ pip install -r requirements.txt
 * `requirements.txt`: Text file to be run for all functionality requirement handling in this repository
 * `run.ipynb`: Demo for model comparison via performance metrics of research paper recommendations
 
-To save time and not re-run BERT and the GNN model, you can download the pre-computed embeddings and models from here:
-```
-https://www.dropbox.com/scl/fi/65bp163njgpyogu5y94z7/resources.zip?rlkey=dl1gqvcybqugykrq8rwmowc6a&dl=0
-```
-Please download and place the content in the `model/` folder.
-
 ## Data Preparation
 
 1. [Full Context PeerRead Dataset](https://bert-gcn-for-paper-citation.s3.ap-northeast-2.amazonaws.com/PeerRead/full_context_PeerRead.csv)
@@ -67,6 +61,13 @@ Please download and place the content in the `model/` folder.
    | <strong>target_year</strong>        |             Release year of citing paper          |
    | <strong>source_year</strong>        |             Release year of cited paper           |
 
+## Model Preparation
+
+To save time and not re-run BERT and the GNN model, you can download the pre-computed embeddings and models from here:
+```
+https://www.dropbox.com/scl/fi/65bp163njgpyogu5y94z7/resources.zip?rlkey=dl1gqvcybqugykrq8rwmowc6a&dl=0
+```
+Please download and place the content in the `model/` folder.
 
 ## Running the Notebook
 
