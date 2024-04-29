@@ -20,14 +20,27 @@ pip install -r requirements.txt
 
 ## Directory and Contents
 
-* `arxivCS_data_retrieval`: Functions to extract data from arxivCS to build a dataset. 
 * `data`: The folder to put the data.
-* `model`: This folder contains the pre-trained models and embeddings.
-  * `fine-tuning BERT`
-  * `BERT Embeddings`
-  * `GNN model (GCN, GAT)`
-  * `baseline model using Node2vec`
-  * `Data pre-processing and evaluation metric functions`
+  * `arxivCS_data_retrieval`: Functions to extract data from arxivCS to build a dataset.
+    * `utils`: Folder that holds utility functions for arxivCS dataset wrangling and scraping script
+      * `node.py`: Node functions for trie data structure used for wrangling and scraping
+      * `paper_parser_utils.py`: Utility functions for column data processing the arxivCS dataset
+      * `tree.py`: Trie functions for trie operations
+    * `README.md`: Document outlining how to use the arxivCS data wrangling and scraping script
+    * `data_wrangle_script.py`: Data wrangler and compiler for ArxivCS source and destination citation dataset.
+  * `visual_explorations`: Notebooks outlining exploratory data analysis on datasets
+    * `baseline_model_w_visuals.ipynb`: Notebook outlining baseline model compilation with data visuals
+    * `peerread_data_pagerank.ipynb`: Notebook outlining various visualizations such as page rank distribution and graph communities
+    * `topic_analysis.ipynb`: Notebook outlining various topic analysis functionalities such as word cloud and LDA
+* `model_architecture`: This folder contains the pre-trained models and embeddings.
+  * `bert_embeddings.py`: BERT embedding aggregation and functionality
+  * `gnn.py`: Builds, runs and evaluates a GNN model using GCN layers for link prediction.
+  * `node2vec.py`: Builds, runs and evaluates a node2vec model's ability to perform link prediction.
+  * `utils.py`: Utility functions used throughout model architecture and evaluation
+* `D2K Poster.pptx`: Poster presented for the D2K Spring 2024 Showcase
+* `README.md`: Document being read that outlines the purpose and use of this repository
+* `requirements.txt`: Text file to be run for all functionality requirement handling in this repository
+* `run.ipynb`: Demo for model comparison via performance metrics of research paper recommendations
 
 To save time and not re-run BERT and the GNN model, you can download the pre-computed embeddings and models from here:
 ```
