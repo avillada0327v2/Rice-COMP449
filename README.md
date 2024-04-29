@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 ## Directory and Contents
 
-* `data`: The folder to put the data.
+* `data`: Folder to put data as well as data wrangling, scripting, and analysis.
   * `arxivCS_data_retrieval`: Functions to extract data from arxivCS to build a dataset.
     * `utils`: Folder that holds utility functions for arxivCS dataset wrangling and scraping script
       * `node.py`: Node functions for trie data structure used for wrangling and scraping
