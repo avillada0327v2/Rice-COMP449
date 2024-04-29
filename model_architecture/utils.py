@@ -11,7 +11,7 @@ from sklearn.metrics import roc_auc_score  # Compute Area Under the Receiver Ope
 from torch_geometric.data import Data  # Data handling of graphs in PyTorch Geometric
 from torch.utils.data import DataLoader, TensorDataset  # DataLoader and Dataset wrapping tensors for PyTorch
 from transformers import BertTokenizer, BertModel  # BERT model and tokenizer from Hugging Face's Transformers library
-from model.bert_embeddings import *
+from model_architecture.bert_embeddings import *
 import matplotlib.pyplot as plt
 
 

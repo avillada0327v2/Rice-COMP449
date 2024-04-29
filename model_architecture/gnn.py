@@ -9,7 +9,7 @@ from torch_geometric.nn import GCNConv
 from torch_geometric.nn import GATConv
 from torch.nn import BCEWithLogitsLoss
 from torch_geometric.transforms import RandomLinkSplit
-from model.utils import *
+from model_architecture.utils import *
 
 
 class GCN(torch.nn.Module):

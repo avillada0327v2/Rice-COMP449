@@ -9,7 +9,7 @@ from torch_geometric.nn import Node2Vec
 from torch_geometric.transforms import RandomLinkSplit
 from torch_geometric.data import Data
 from sklearn.metrics import roc_auc_score
-from model.utils import *
+from model_architecture.utils import *
 
 def train_node2vec_link_predictor(model, train_data, val_data, optimizer, criterion, n_epochs=1000, model_save_path='node2vec_model.pth'):
     """
