@@ -11,17 +11,11 @@ This project demonstrates a citation recommendation system using Node2Vec and BE
 Sharath Giri, Judy Fang, Jerry Jiang, Jacky Jiang, James Murphy, & Andres Villada
 
 ## Table of Contents
-1. [ Installation. ](#installation)
-2. [ Usage tips. ](#usage)
-
-## 1. Description
-
-sometext
-
-<a name="usage"></a>
-## 2. Usage tips
-
-sometext
+1. [ Installation ](#installation)
+2. [ Directory and Contents ](#DirectoryandContents)
+3. [ Data Preparation ](#DataPrep)
+4. [ Model Preparation ](#ModelPrep)
+5. [ Running the Notebook](#Running)
 
 <a name="installation"></a>
 ## Installation
@@ -32,6 +26,7 @@ Ensure you have Python 3.9 + installed. Clone this repository and navigate to th
 pip install -r requirements.txt
 ```
 
+<a name="DirectoryandContents"></a>
 ## Directory and Contents
 
 * `data`: Folder to put data as well as data wrangling, scripting, and analysis.
@@ -56,6 +51,7 @@ pip install -r requirements.txt
 * `requirements.txt`: Text file to be run for all functionality requirement handling in this repository
 * `run.ipynb`: Demo for model comparison via performance metrics of research paper recommendations
 
+<a name="DataPrep"></a>
 ## Data Preparation
 
 1. [Full Context PeerRead Dataset](https://bert-gcn-for-paper-citation.s3.ap-northeast-2.amazonaws.com/PeerRead/full_context_PeerRead.csv)
@@ -75,6 +71,7 @@ pip install -r requirements.txt
    | <strong>target_year</strong>        |             Release year of citing paper          |
    | <strong>source_year</strong>        |             Release year of cited paper           |
 
+<a name="ModelPrep"></a>
 ## Model Preparation
 
 To save time and not re-run BERT and the GNN model, you can download the pre-computed embeddings and models from here:
@@ -83,6 +80,7 @@ https://www.dropbox.com/scl/fi/65bp163njgpyogu5y94z7/resources.zip?rlkey=dl1gqvc
 ```
 Please download and place the content in the `model/` folder.
 
+<a name="Running"></a>
 ## Running the Notebook
 
 To view and run the project:
