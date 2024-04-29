@@ -1,3 +1,7 @@
+"""
+Utility functions used throughout model architecture functionality and evaluation
+"""
+
 import os  # Operating system interfaces
 import gc  # Garbage Collector interface
 import numpy as np  # Support for large, multi-dimensional arrays and matrices
